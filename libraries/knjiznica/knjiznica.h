@@ -19,11 +19,11 @@
 #define btnRIGHT  3
 #define btnSELECT 4
 
-char tipkeArr[] = {'u','d','l','r','s'};
+//char tipkeArr[] = {'u','d','l','r','s'};
 
 
-#define PISKAC_PIN	 10
-#define GUMBI_PIN    A0
+#define PISKAC_PIN	 10  
+#define GUMBI_PIN    A0 //pin na katerega so priklopjene tipke
 
 
 #define ON  1
@@ -156,6 +156,12 @@ uint8_t tipke[5];
 
 typedef struct 
 {
+char* naslov;
+uint8_t tipke[5];
+}s_ekranOdstevaj;
+
+typedef struct 
+{
 uint8_t state;
 uint32_t mills;
 uint8_t stOdstevanj;
@@ -187,5 +193,5 @@ struct koncniNapisi
 };
 
 #else
-	#error Oops! Trying to include knjiznica.h on another device?
+	//#error Oops! Trying to include knjiznica.h on another device?
 #endif

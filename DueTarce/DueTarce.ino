@@ -230,6 +230,17 @@ s_ekranProgram program5 =        // PROGRAM_5
   MENI_PROG5, 0, 0, 0, 0,
 };
 
+s_ekranOdstevaj odstavajOkno =        // OSDSTEVAJ
+{
+  0,
+  //gor dol levo, desno, select
+  //tuki se poj notr shran tipke ki jih lahko uporabnik
+  //uporablja med odstevanjem
+  0, 0, 0, 0, 0,
+  
+};
+
+
 
 
 // def vrednosti odstevalnika
@@ -249,13 +260,11 @@ s_drawTockeInit risalnikTock = {
 //TODO dodaj zvok ko je tarca zadeta
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
-int sensorTipke = A0;  //pin na katerega so priklopjene tipke
-int tipke[5];          //kolikokrat je bila tipka pritisnjena
+
 int i;
-int piskac = OFF;
 int stoparica = OFF;
 int stevec = 0;
-int piskacCnt = 0;
+
 int gumbi[5];
 int adc_key_in;
 int funInt = 1;
@@ -378,8 +387,8 @@ int prevState;
 void loop() {
 
   //Serial.println(state);
-  sPrint("nS", nonStop);
-  sPrint("tarc", preverjajSprememboTarc);
+  //sPrint("nS", nonStop);
+  //sPrint("tarc", preverjajSprememboTarc);
   switch (state) {
     case MENI_GLAVNI:
       drawScreen();
@@ -466,6 +475,20 @@ uint8_t preveriTarce(){
   }
   return 0;
 }
+
+void confOdstevalnik(){
+    //skonfigurira odstevalnik
+    odstevalnik.state = 1;
+    odstevalnik.stOdstevanj = 5;
+    odstevalnik.mills = 0;
+    odstevalnik.returnState  = state;
+    // nastavi vrednost tipke da ko uporabnik pritisne GOR bo su nazanj na meni
+    ((s_ekranOdstevaj*)vsiEkrani[ODSTEVAJ])->tipke[btnUP] = ((s_ekranProgram*)vsiEkrani[state])->tipke[btnUP];
+    state = ODSTEVAJ;
+    nonStop = 1;
+}
+
+
 //TODO dej te spremenljivke vse v skupno strukturo za vsak program
 int treOsvetljena;
 int pauza;  //pauza preden przge nasledno tarco
@@ -480,12 +503,7 @@ void programFSM1() { //prog 1 final state mašina
   switch (programState) {
     case -1:
       //skonfigurira odstevalnik
-      odstevalnik.state = 1;
-      odstevalnik.stOdstevanj = 5;
-      odstevalnik.mills = 0;
-      odstevalnik.returnState  = state;
-      state = ODSTEVAJ;
-      nonStop = 1;
+      confOdstevalnik();
       programState = 0;
       //odstevalnik premakne programState naprej na 1
       break;
@@ -499,7 +517,13 @@ void programFSM1() { //prog 1 final state mašina
 
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Preostalih: 0");
+      lcd.print("Preostalih: X");
+      
+      //izpise prvo vrednost na mesto X
+      itoa(stTarc, tockeSkupajArr, 10);
+      lcd.setCursor(12, 0);
+      lcd.print(tockeSkupajArr);
+      
       
       lcd.setCursor(0, 1);
       lcd.print("Cas: ");
@@ -526,21 +550,23 @@ void programFSM1() { //prog 1 final state mašina
           programState = 3;
           break;
         }
+        
+      //izpise skupne tocke
+      //pobrise prejsno cifro
+      lcd.setCursor(12, 0);
+      lcd.print("    ");
+      
+      itoa(stTarc - tockeSkupaj, tockeSkupajArr, 10);
+      lcd.setCursor(12, 0);
+      lcd.print(tockeSkupajArr);
+       
+        
       }
       //pobrise screen
       //lcd.setCursor(7, 0);
       //lcd.print("    ");
       
-      //izpise skupne tocke
-      
-      lcd.setCursor(12, 0);
-      lcd.print("     ");
-      itoa(stTarc - tockeSkupaj, tockeSkupajArr, 10);
-      lcd.setCursor(12, 0);
 
-      
-      lcd.print(tockeSkupajArr);
-       
       //izrise uro v spodnji vrstici
       lcd.setCursor(5, 1);
       izpisiCas((millis() - treMill)/100);
@@ -569,13 +595,9 @@ void programFSM2( ) {
   switch (programState) {
     case -1:
       //skonfigurira odstevalnik
-      odstevalnik.state = 1;
-      odstevalnik.stOdstevanj = 5;
-      odstevalnik.mills = 0;
-      odstevalnik.returnState  = state;
-      state = ODSTEVAJ;
+      confOdstevalnik();
+      
       pauza = 100; // 10 s;
-      nonStop = 1;
       programState = 0;
       //odstevalnik premakne programState naprej na 1
       break;
@@ -657,12 +679,8 @@ void programFSM3( ) {
   switch (programState) {
     case -1:
       //skonfigurira odstevalnik
-      odstevalnik.state = 1;
-      odstevalnik.stOdstevanj = 5;
-      odstevalnik.mills = 0;
-      odstevalnik.returnState  = state;
-      state = ODSTEVAJ;
-      nonStop = 1;
+      confOdstevalnik();
+      
       programState = 0;
       //odstevalnik premakne programState naprej na 1
       break;
@@ -753,12 +771,8 @@ void programFSM4() { //prog 4 final state mašina
   switch (programState) {
     case -1:
       //skonfigurira odstevalnik
-      odstevalnik.state = 1;
-      odstevalnik.stOdstevanj = 5;
-      odstevalnik.mills = 0;
-      odstevalnik.returnState  = state;
-      state = ODSTEVAJ;
-      nonStop = 1;
+      confOdstevalnik();
+      
       programState = 0;
       pauza = 10000;//10s//TODO preberi to vrednost iz memorija
       treMill = 0;
@@ -768,7 +782,7 @@ void programFSM4() { //prog 4 final state mašina
     case 1:
       programState = 2;
 
-      //resetira vse tocke in pokaze vse tarce
+      //resetira vse tocke in pokaze vse tarce"tarc
       resetScore();
       //deaktivirajVse();
       //mislm da ni treba
@@ -996,7 +1010,6 @@ void odstevaj() {
       lcd.setCursor(0, 0);
       lcd.print("Igra se zacne v");
       char cifra[2];
-      piskac = OFF;
       odstevalnik.state = 2;
       odstevalnik.mills = 0;
 
@@ -1024,25 +1037,6 @@ void odstevaj() {
         programState = 1;
       }
       break;
-  }
-}
-
-void piskacOn(int cas) {
-  if (piskac == OFF) {
-    piskacCnt = cas;
-    digitalWrite(PISKAC_PIN, HIGH);
-  }
-  piskac = ON;
-}
-
-void piskacCount() {
-  if (piskac == ON) {
-    if (piskacCnt == 0) {
-      //Timer1.detachInterrupt();
-      digitalWrite(PISKAC_PIN, LOW);
-      piskac = OFF;
-    }
-    else piskacCnt --;
   }
 }
 
@@ -1125,7 +1119,7 @@ void drawScreenEdit() {
   char vrednostStr[4]; // charr arr v katerga zapisemo vrednost
   int b = 0;               // stevec ki se premika po poljih naprej
 
-  lcd.setCursor(0, 1);
+  
   char *opis = d_parameter.opis;
 
   uint8_t dolzina = (getDecLength(d_parameter.vrednost) + getLngth(opis) + 5);
@@ -1160,7 +1154,7 @@ void drawScreenEdit() {
     outStr[b++] = ' ';
   }
 
-
+  lcd.setCursor(0, 1);
   lcd.print(outStr);
 }
 
@@ -1187,6 +1181,8 @@ uint8_t preveriTipke() {
   //else if(get_LCD_button(btnUP));
   return 0;
 }
+
+
 int defVrednost;
 uint8_t izvediUkaz(uint8_t ukaz) {
   if (ukaz == 0)return 0;
@@ -1252,7 +1248,7 @@ uint8_t izvediUkaz(uint8_t ukaz) {
     case NAST_EDIT:
       //prebere vresnost iz spomina
       defVrednost = d_parameter.vrednost;
-      sPrint("defV:", defVrednost);
+      //sPrint("defV:", defVrednost);
       d_parameter.vrednost = spomin[d_parameter.index];
       sPrint("izSpomina:", spomin[d_parameter.index]);
       if ( d_parameter.max < d_parameter.vrednost || d_parameter.vrednost > d_parameter.min) {
@@ -1297,6 +1293,7 @@ void sPrint(char* c, int a) {
   Serial.print(c);
   Serial.println(a);
 }
+
 void getSpomin(int a) {
 
   //nafila ceu spomin iz EEPROM-a
@@ -1314,7 +1311,7 @@ void initEkrane() {
 
   vsiEkrani[NAST_ST_TARC] =      (uint32_t)(&stTarcNast);
   vsiEkrani[NAST_SENZORJI] =     (uint32_t)(&senzorjiNast);
-
+  vsiEkrani[ODSTEVAJ] =          (uint32_t)(&odstavajOkno);
 
   vsiEkrani[MENI_PROG1] =   	 (uint32_t)(&prog1Menu);
   vsiEkrani[MENI_PROG2] =   	 (uint32_t)(&prog2Menu);
@@ -1336,70 +1333,6 @@ void initEkrane() {
 
 
 }
-
-void initTipke() {
-  Timer3.attachInterrupt(checkTipke).start(10000); // Every 10ms //za tipke
-  pinMode(sensorTipke, INPUT);
-}
-
-void initPiskac() {
-  Timer4.attachInterrupt(piskacCount).start(100000); // Every 100ms //za piskac
-  pinMode(PISKAC_PIN, OUTPUT);
-  digitalWrite(PISKAC_PIN, LOW);
-}
-
-long tipkeDebounceTimer[5];
-//vrednosti ko so pritisnjene posamezne tipke
-//1023, 990, 958, 872, 757
-int tipkeVrednost[] = {1024, 1002, 970, 903, 800, 700};
-int debounceDelay = 10;
-
-#define TIPKA_DOWN     -2
-#define TIPKA_UP       -3
-
-void checkTipke() {
-  int i;
-
-  //prebere vrednost na pinu
-  int reading = analogRead(sensorTipke);
-
-  //glede na to vrednost se odloči katera tipka je bila pritisnjena
-  //nemogoce neakj je narobe
-  if (reading > 1024)return;
-  //sprehodi se skozi vse tipke
-  for (i = 0; i < 5; i++) {
-    //ce reading pade pod podane vrednosti in ce je tipka gor si zapovni cas
-    if (tipkeVrednost[i] > reading && reading > tipkeVrednost[i + 1]) {
-      if (tipkeDebounceTimer[i] ==  TIPKA_UP) {
-        tipkeDebounceTimer[i] = millis();
-      }
-      //ce je tipka ze dol ne naredi nicesar
-      if (tipkeDebounceTimer[i] ==  TIPKA_DOWN) continue;
-      
-      // ce je bila tipka dol dosti casa zabelezi pritisk tipke
-      if (millis() - tipkeDebounceTimer[i] > debounceDelay) {
-        tipke[i]++;
-        tipkeDebounceTimer[i] = TIPKA_DOWN;
-      }
-    } else {
-      tipkeDebounceTimer[i] = TIPKA_UP;
-    }
-  }
-}
-
-
-//prebere tipko
-int get_LCD_button(int tipka) {
-  if (tipke[tipka]) {
-    //Serial.println(tipkeArr[tipka]);
-    tipke[tipka]--;
-    return 1;
-  }
-  return 0;
-}
-
-
-
 
 
 //pretvori string v 16 dolg niz znakov ki je primeren za izpis
@@ -1431,6 +1364,7 @@ char* pretvoriBesedilo(char* out, char *str, int tip) {
   out[16] = 0;                    // na konec stringa doda nulo
   return &out[0];
 }
+
 // vrne dolžino stringa če ima na koncu 0
 int getLngth(char * c) {
   int dolzina = 0;
