@@ -21,7 +21,7 @@ void aktivirajTarco(int tarca);
 void setNoReadTime(uint16_t a);
 void setStTarc(uint8_t st);
 
-void initSenzorji(uint8_t st, uint16_t tarceNoRead);
+void initSenzorji(uint8_t st, uint8_t maxSt, uint16_t tarceNoRead);
 
 void int0();
 void int1();

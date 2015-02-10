@@ -22,7 +22,25 @@ s_ekran mainMenu = //MENI_GLAVNI
   3, 0,
   "igraj !",      MENI_IGRAJ,
   "nastavitve",   MENI_NASTAVITVE,
-  "info",         0,
+  "info",         MENI_INFO,
+};
+
+s_ekran infoMenu = //MENI_INFO
+{
+  "Verzija 1.02",
+  //gor dol levo, desno, select
+  MENI_GLAVNI, STEJ_PRITISKE, STEJ_PRITISKE, STEJ_PRITISKE, 0,
+  1, 0,
+  "10.feb.2015",       0,
+};
+
+s_ekran madeByMenu = //MENI_MADE_BY
+{
+  "SPROGRAMIRAL",
+  //gor dol levo, desno, select
+  MENI_INFO, 0, 0, 0, 0,
+  1, 0,
+  "Anze  Bertoncelj",       0,
 };
 
 s_ekran nastavitveMenu = //MENI_NASTAVITVE
@@ -289,7 +307,7 @@ void setup() {
   getSpomin();
   initTipke();
   initPiskac();
-  initSenzorji(10,100);//spomin[MEM_ST_TARC], spomin[MEM_ZAMIK]);
+  initSenzorji(spomin[MEM_ST_TARC],10,spomin[MEM_ZAMIK]);//spomin[MEM_ST_TARC], spomin[MEM_ZAMIK]);
   initEkrane();
   sPrint("stTarc",stTarc);
   
@@ -391,15 +409,12 @@ void loop() {
   //sPrint("nS", nonStop);
   //sPrint("tarc", preverjajSprememboTarc);
   switch (state) {
+    
     case MENI_GLAVNI:
-      drawScreen();
-      break;
-
     case MENI_IGRAJ:
-      drawScreen();
-      break;
-
     case MENI_NASTAVITVE:
+    case MENI_INFO:
+    case MENI_MADE_BY:
       drawScreen();
       break;
 
@@ -612,7 +627,12 @@ void programFSM2( ) {
 
       lcd.clear();
       lcd.setCursor(0, 0);
-      lcd.print("Preostalih: 0");
+      lcd.print("Preostalih: X");
+      
+      //izpise prvo vrednost na mesto X
+      itoa(stTarc, tockeSkupajArr, 10);
+      lcd.setCursor(12, 0);
+      lcd.print(tockeSkupajArr);
       
       lcd.setCursor(0, 1);
       lcd.print("Cas: ");
@@ -643,13 +663,19 @@ void programFSM2( ) {
       
       Serial.print(treOsvetljena);
       stara = tockeSkupaj;
-     }
       
-      //izris na ekran
       //izpise skupne tocke
+      //pobrise prejsno cifro
+      lcd.setCursor(12, 0);
+      lcd.print("    ");
+      
       itoa(stTarc - tockeSkupaj, tockeSkupajArr, 10);
       lcd.setCursor(12, 0);
       lcd.print(tockeSkupajArr);
+      
+     }
+      
+
       
       //izrise uro v spodnji vrstici
       lcd.setCursor(5, 1);
@@ -973,7 +999,7 @@ void programFSM5() { //prog 5 final state mašina
       
       
       lcd.setCursor(0, 1);
-      lcd.print("Cas:            ");
+      lcd.print("Cas: 0.0s       ");
       
 
      
@@ -983,7 +1009,8 @@ void programFSM5() { //prog 5 final state mašina
     break;
     
     case 2:
-      if(stara != tockeSkupaj){
+      //drugi pogoj se izvede samo v primeru ko je bila izbrana samo ena tarca
+      if(stara != tockeSkupaj || treOsvetljena > stTarc-1){
        
         deaktivirajTarco(treOsvetljena);
         
@@ -1216,6 +1243,8 @@ uint8_t preveriTipke() {
   return 0;
 }
 
+uint32_t zadnjiPritisk;
+uint8_t stPritiskov = 0;
 
 int defVrednost;
 uint8_t izvediUkaz(uint8_t ukaz) {
@@ -1319,6 +1348,8 @@ uint8_t izvediUkaz(uint8_t ukaz) {
       }
       
       if(d_indexParametra == MEM_ST_TARC)stTarc = d_parameter.vrednost;
+      else if (d_indexParametra == MEM_ZAMIK)setNoReadTime(d_parameter.vrednost);
+      
       sPrint("koncna:", spomin[d_indexParametra]);
       state = d_retState;
       return 1;
@@ -1331,6 +1362,18 @@ uint8_t izvediUkaz(uint8_t ukaz) {
     case PROG1_TOCKE_INC:
       risalnikTock.pozicija ++;
 
+    return 1;
+    
+    case STEJ_PRITISKE:
+      if(millis() - zadnjiPritisk < 500){
+        stPritiskov ++;
+        if(stPritiskov > 10){
+          state = MENI_MADE_BY;
+        }
+      }else{
+        stPritiskov = 0;
+      }
+      zadnjiPritisk = millis();
     return 1;
     
     default:
@@ -1350,7 +1393,7 @@ void getSpomin() {
  
   //deklaracija parametrov	opis,	        min,	max,	def,	korak
   parametri[MEM_ST_TARC]=	{"st. tarc:",	1,	10,	10,	1	};
-  parametri[MEM_ZAMIK]=		{"zamik:",	100,	1000,	400,	100	};
+  parametri[MEM_ZAMIK]=		{"zamik:",	100,	1000,	100,	50	};
   
   parametri[MEM_PROG1_CAS]=	{"cas:",	10,	200,	60,	10	};
   //parametri[MEM_PROG1_TEZ]=	{"tezavnost:",	1,	5,	3,	1	};
@@ -1400,6 +1443,8 @@ void initEkrane() {
   vsiEkrani[MENI_GLAVNI] =       (uint32_t)(&mainMenu);
   vsiEkrani[MENI_IGRAJ] =        (uint32_t)(&igrajMenu);
   vsiEkrani[MENI_NASTAVITVE] =   (uint32_t)(&nastavitveMenu);
+  vsiEkrani[MENI_INFO] =         (uint32_t)(&infoMenu);
+  vsiEkrani[MENI_MADE_BY] =      (uint32_t)(&madeByMenu);
 
   vsiEkrani[NAST_ST_TARC] =      (uint32_t)(&stTarcNast);
   vsiEkrani[NAST_SENZORJI] =     (uint32_t)(&senzorjiNast);

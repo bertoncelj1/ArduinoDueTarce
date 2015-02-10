@@ -28,6 +28,7 @@ uint16_t staraTockeSkupaj;
 uint16_t noReadTime = 100;
 uint8_t tarceStanje[10]; //pove stanje o tarci on/off
 uint8_t stTarc;
+uint8_t stTarcMax;
 int j;
 
 /*
@@ -47,7 +48,7 @@ void resetScore(){
 }
 
 void deaktivirajVse(){
-	j=10;
+	j=stTarcMax;
 	while(j--)deaktivirajTarco(j);
 }
 
@@ -57,7 +58,7 @@ void deaktivirajTarco(int tarca){
 }
 
 void aktivirajVse(){
-	j=10;
+	j=stTarcMax;
 	while(j--)aktivirajTarco(j);
 }
 
@@ -81,14 +82,15 @@ void setStTarc(uint8_t st){
 }
 
 
-void initSenzorji(uint8_t st, uint16_t tarceNoRead){
+void initSenzorji(uint8_t st, uint8_t maxSt, uint16_t tarceNoRead){
+  stTarcMax = maxSt;
   setStTarc(st);
   Serial.println(stTarc);
   setNoReadTime(tarceNoRead);
 
   //Serial.begin(9600);
   
-  for(j=0;j<stTarc;j++){
+  for(j=0;j<maxSt;j++){
     //attachInterrupt(senzorji[j].pinSenzor, sensorInterrupt, RISING);
     pinMode(senzorji[j].pinLuc, OUTPUT);
   }

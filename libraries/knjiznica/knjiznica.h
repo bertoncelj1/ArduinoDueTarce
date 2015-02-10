@@ -33,25 +33,27 @@
 //ekrani in dejanska stanja
 #define MENI_GLAVNI 	1
 #define MENI_IGRAJ 	    2
-#define MENI_NASTAVITVE 3
-#define NAST_SENZORJI 	4
-#define NAST_ST_TARC	5
-#define MENI_PROG1 	6
-#define MENI_PROG2 	7
-#define MENI_PROG3 	8
-#define MENI_PROG4 	9
-#define MENI_PROG5 	10
-#define PROGRAM_1	11
-#define PROGRAM_2	12
-#define PROGRAM_3	13
-#define PROGRAM_4	14
-#define PROGRAM_5	15
-#define NAST_PROG1 	16
-#define NAST_PROG2 	17
-#define NAST_PROG3 	18
-#define NAST_PROG4 	19
-#define NAST_PROG5 	20
-#define ODSTEVAJ	21
+#define MENI_INFO 	    3
+#define MENI_MADE_BY	4
+#define MENI_NASTAVITVE 5
+#define NAST_SENZORJI 	6
+#define NAST_ST_TARC	7
+#define MENI_PROG1 		8
+#define MENI_PROG2 		9
+#define MENI_PROG3 		10
+#define MENI_PROG4 		11
+#define MENI_PROG5 		12
+#define PROGRAM_1		13
+#define PROGRAM_2		14
+#define PROGRAM_3		15
+#define PROGRAM_4		16
+#define PROGRAM_5		17
+#define NAST_PROG1 		18
+#define NAST_PROG2 		19
+#define NAST_PROG3 		20
+#define NAST_PROG4 		21
+#define NAST_PROG5 		22
+#define ODSTEVAJ		23
 
 
 
@@ -66,6 +68,7 @@
 #define NAST_EDIT_FINISH  47 
 #define PROG1_TOCKE_DEC   48 //za premikanje po tockah
 #define PROG1_TOCKE_INC   49 
+#define STEJ_PRITISKE     50 
 
 //nastavitve in splosen spomin -- indexi vseh spremenljivk v spominu
 //mem -> memory
