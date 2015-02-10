@@ -6,7 +6,7 @@
 #include <tipkeDueTarce.h>
 #include <DueFlashStorage.h>
 
-
+asdasd
 DueFlashStorage dueFlashStorage;
 
 //#include <EEPROM.h>
