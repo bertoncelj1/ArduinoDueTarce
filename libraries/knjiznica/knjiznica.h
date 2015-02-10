@@ -70,20 +70,21 @@
 //nastavitve in splosen spomin -- indexi vseh spremenljivk v spominu
 //mem -> memory
 #define MAX_SPOMIN 		 50
-#define ST_SPOMINA 		 12
+#define ST_SPOMINA 		 11
 
+//TODO TODO TODO to je treba neki spremenit !!!11!!!1!1!!!!!
 #define MEM_ST_TARC		 0
-#define MEM_OBCUT		 1
-#define MEM_ZAMIK		 2
-#define MEM_PROG1_CAS	 3
-#define MEM_PROG2_TEZ	 4
-#define MEM_PROG2_CAS	 5
-#define MEM_PROG3_CAS	 6
-#define MEM_PROG3_TEZ	 7
-#define MEM_PROG4_CAS	 8
-#define MEM_PROG4_TEZ	 9
-#define MEM_PROG5_CAS	 10
-#define MEM_PROG5_TEZ	 11
+//#define MEM_OBCUT		 1
+#define MEM_ZAMIK		 1
+#define MEM_PROG1_CAS	 2
+#define MEM_PROG2_TEZ	 3
+#define MEM_PROG2_CAS	 4
+#define MEM_PROG3_CAS	 5
+#define MEM_PROG3_TEZ	 6
+#define MEM_PROG4_CAS	 7
+#define MEM_PROG4_TEZ	 8
+#define MEM_PROG5_CAS	 9
+#define MEM_PROG5_TEZ	 10
 
 
 //risalnik tock tipi
@@ -96,9 +97,16 @@
 
 #define MAX_PARAMETROV 2
 
+/*
 #define d_retState   (((s_ekranNastavitveEdit*)vsiEkrani[NAST_EDIT])->returnState)
 #define d_tretIzbran (((s_ekranNastavitve*)vsiEkrani[d_retState])->trenutnoIzbran)
 #define d_parameter  (((s_ekranNastavitve*)vsiEkrani[d_retState])->parameter[d_tretIzbran])
+*/
+
+#define d_retState   	 (((s_ekranNastavitveEdit*)vsiEkrani[NAST_EDIT])->returnState)
+#define d_tretIzbran	 (((s_ekranNastavitve*)vsiEkrani[d_retState])->trenutnoIzbran)
+#define d_indexParametra (((s_ekranNastavitve*)vsiEkrani[d_retState])->indexi[d_tretIzbran])
+#define d_parameter  	 (parametri[d_indexParametra])
 
 
 
@@ -127,8 +135,10 @@ uint16_t min;
 uint16_t max;
 int16_t vrednost;
 uint8_t  korak;
-uint8_t index; //st indexa v spominu
+//uint8_t index; //st indexa v spominu
 }s_parameter;
+
+
 
 
 typedef struct 
@@ -138,7 +148,8 @@ uint8_t tipke[5];
 uint8_t stParametrov;
 uint8_t trenutnoIzbran;
 uint8_t focus;
-s_parameter parameter[MAX_PARAMETROV];
+uint8_t indexi[MAX_PARAMETROV]; //indexi parametrov ki so shranjeni v areju
+//s_parameter parameter[MAX_PARAMETROV];
 }s_ekranNastavitve;
 
 typedef struct 

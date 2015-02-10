@@ -4,9 +4,14 @@
 #include <LiquidCrystal.h>
 #include <senzorjiDueTarce.h>
 #include <tipkeDueTarce.h>
+#include <DueFlashStorage.h>
+
+
+DueFlashStorage dueFlashStorage;
 
 //#include <EEPROM.h>
 
+s_parameter parametri[MAX_SPOMIN];
 
 s_ekran mainMenu = //MENI_GLAVNI
 {
@@ -37,8 +42,8 @@ s_ekranNastavitve stTarcNast =  //NAST_ST_TARC
   MENI_NASTAVITVE, NAST_EDIT, DEC_IZBRAN, INC_IZBRAN, 0,
   //st parametrov, trenutno izbran, focus
   1, 0, OFF,
-  //opis,    min   max,  def,  korak, index
-  "st. tarc:", 1, 10, 10, 1, MEM_ST_TARC
+  //index parametra ki je shranjen v arreju "parametri"
+  MEM_ST_TARC
 };
 
 s_ekranNastavitve senzorjiNast =  //NAST_SENZORJI
@@ -49,8 +54,8 @@ s_ekranNastavitve senzorjiNast =  //NAST_SENZORJI
   //st parametrov, trenutno izbran, focus
   1, 0, OFF,
   //opis,    min   max,  def,  korak, index
-  //"obcut.:", 1000, 2000, 1500, 100, MEM_ST_TARC,//MEM_OBCUT,
-  "zamik:",  100,  1000, 400,  100, MEM_ZAMIK,
+  //index parametra ki je shranjen v arreju "parametri"
+  MEM_ZAMIK,
 };
 
 s_ekranNastavitveEdit editNast =  //NAST_EDIT
@@ -92,8 +97,8 @@ s_ekranNastavitve prog1Nast =  //NAST_PROG1
   MENI_PROG1, NAST_EDIT, NAST_DEC_IZBRAN, NAST_INC_IZBRAN, 0,
   //st parametrov, trenutno izbran, focus
   1, 0, OFF,
-  //opis,    min   max,  def,  korak, index
-  "cas:",  10,  200, 60,  10, MEM_PROG1_CAS,
+  //index parametra ki je shranjen v arreju "parametri"
+  MEM_PROG1_CAS,
   //"hitrost:",  100,  1000, 500,  50
 
 };
@@ -115,10 +120,9 @@ s_ekranNastavitve prog2Nast =  //NAST_PROG2
   MENI_PROG2, NAST_EDIT, NAST_DEC_IZBRAN, NAST_INC_IZBRAN, 0,
   //st parametrov, trenutno izbran, focus
   2, 0, OFF,
-  //opis,    min   max,  def,  korak, index
-  "tezavnost:", 1, 5, 3, 1, MEM_PROG2_TEZ,
-  "cas:",  10,  200, 60,  10, MEM_PROG2_CAS,
-  //"hitrost:",  100,  1000, 500,  50
+  //index parametra ki je shranjen v arreju "parametri"
+  MEM_PROG2_TEZ,
+  MEM_PROG2_CAS,
 
 };
 
@@ -139,10 +143,9 @@ s_ekranNastavitve prog3Nast =  //NAST_PROG3
   MENI_PROG3, NAST_EDIT, NAST_DEC_IZBRAN, NAST_INC_IZBRAN, 0,
   //st parametrov, trenutno izbran, focus
   2, 0, OFF,
-  //opis,    min   max,  def,  korak, index
-  "tezavnost:", 1, 5, 3, 1, MEM_PROG3_TEZ,
-  "cas:",  10,  200, 60,  10, MEM_PROG3_CAS,
-  //"hitrost:",  100,  1000, 500,  50
+  //index parametra ki je shranjen v arreju "parametri"
+  MEM_PROG3_TEZ,
+  MEM_PROG3_CAS,
 
 };
 
@@ -153,7 +156,7 @@ s_ekran prog4Menu = //MENI_PROG4
   MENI_IGRAJ, FUN_TIPKE, DEC_IZBRAN, INC_IZBRAN, 0,
   2, 0,
   "zacni z igro",        PROGRAM_4,
-  "nastavitve",        	 0,
+  "nastavitve",        	 NAST_PROG4,
 };
 
 s_ekranNastavitve prog4Nast =  //NAST_PROG4
@@ -162,11 +165,10 @@ s_ekranNastavitve prog4Nast =  //NAST_PROG4
   //gor dol levo, desno, select
   MENI_PROG4, NAST_EDIT, NAST_DEC_IZBRAN, NAST_INC_IZBRAN, 0,
   //st parametrov, trenutno izbran, focus
-  2, 0, OFF,
-  //opis,    min   max,  def,  korak, index
-  "tezavnost:", 1, 5, 3, 1, MEM_PROG4_TEZ,
-  "cas:",  10,  200, 60,  10, MEM_PROG4_CAS,
-  //"hitrost:",  100,  1000, 500,  50
+  1, 0, OFF,
+  //index parametra ki je shranjen v arreju "parametri"
+  MEM_PROG4_CAS,
+  //MEM_PROG4_TEZ,
 
 };
 
@@ -187,10 +189,9 @@ s_ekranNastavitve prog5Nast =  //NAST_PROG5
   MENI_PROG5, NAST_EDIT, NAST_DEC_IZBRAN, NAST_INC_IZBRAN, 0,
   //st parametrov, trenutno izbran, focus
   2, 0, OFF,
-  //opis,    min   max,  def,  korak, index
-  "tezavnost:", 1, 5, 3, 1, MEM_PROG5_TEZ,
-  "cas:",  10,  200, 60,  10, MEM_PROG5_CAS,
-  //"hitrost:",  100,  1000, 500,  50
+  //index parametra ki je shranjen v arreju "parametri"
+  MEM_PROG5_TEZ,
+  MEM_PROG5_CAS,
 
 };
 
@@ -281,17 +282,17 @@ char izpis[16] = {ZNAK_LEVO, ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '
 int8_t programState = -1;
 
 void setup() {
-  getSpomin(0);
+    
   Serial.begin(9600);
   Serial.println("Program Start");
   lcd.begin(16, 2);
+  getSpomin();
   initTipke();
   initPiskac();
   initSenzorji(10,100);//spomin[MEM_ST_TARC], spomin[MEM_ZAMIK]);
   initEkrane();
   sPrint("stTarc",stTarc);
-
-
+  
   state = MENI_GLAVNI;
 }
 
@@ -513,7 +514,7 @@ void programFSM1() { //prog 1 final state mašina
 
       //resetira vse tocke in pokaze vse tarce
       resetScore();
-      aktivirajVse();
+      aktivirajVseIzbrane();
 
       lcd.clear();
       lcd.setCursor(0, 0);
@@ -674,7 +675,7 @@ int stPreostalih;
 
 void programFSM3( ) { 
   char  izpisTocke[16];
-  char  tockeSkupajArr[3];
+  char  tockeSkupajArr[3];//arraj ki se uporablja za izpisovanje int-ov
   
   switch (programState) {
     case -1:
@@ -696,6 +697,12 @@ void programFSM3( ) {
       lcd.clear();
       lcd.setCursor(0, 0);
       lcd.print("Preostalih: 0");
+    
+      //izpise st preostalih
+      itoa(stTarc, tockeSkupajArr, 10);
+      lcd.setCursor(12, 0);
+      lcd.print(tockeSkupajArr);
+      
       
       lcd.setCursor(0, 1);
       lcd.print("Cas: ");
@@ -727,6 +734,7 @@ void programFSM3( ) {
           break;
         }
         for(i=treOsvetljena; i<stPreostalih; i++){
+          
           spisekPreostalih[i] =  spisekPreostalih[i+1];
         }
         
@@ -734,13 +742,17 @@ void programFSM3( ) {
         aktivirajTarco(spisekPreostalih[treOsvetljena]);
         stara = tockeSkupaj;
         Serial.print(treOsvetljena);
+        
+        //pobrise prejsno cifro in izpise novo
+        lcd.setCursor(12, 0);
+        lcd.print("    ");
+        
+        itoa(stPreostalih, tockeSkupajArr, 10);
+        lcd.setCursor(12, 0);
+        lcd.print(tockeSkupajArr);
       }
       
-      //izris na ekran
-      //izpise skupne tocke
-      itoa(stPreostalih, tockeSkupajArr, 10);
-      lcd.setCursor(12, 0);
-      lcd.print(tockeSkupajArr);
+
       
       //izrise uro v spodnji vrstici
       lcd.setCursor(5, 1);
@@ -774,7 +786,9 @@ void programFSM4() { //prog 4 final state mašina
       confOdstevalnik();
       
       programState = 0;
-      pauza = 10000;//10s//TODO preberi to vrednost iz memorija
+
+      pauza = spomin[MEM_PROG4_CAS] * 1000;
+      sPrint("pauza:",pauza);
       treMill = 0;
       //odstevalnik premakne programState naprej na 1
       break;
@@ -824,6 +838,7 @@ void programFSM4() { //prog 4 final state mašina
    case 2:
       //postavitev tarc
       //priziga tarce eno za drugo
+      //prizge nasledno ce je cas > pauze ali ce je tarca zadeta
       mil = millis();
       if(mil - treMill > pauza || stara != tockeSkupaj){
         stara = tockeSkupaj;
@@ -832,12 +847,13 @@ void programFSM4() { //prog 4 final state mašina
         deaktivirajTarco(treOsvetljena);
         
         treOsvetljena ++;
+        //ce so bile ze zadete vse
         if(treOsvetljena > stTarc-1){
           programState = 3;
           nonStop = 1;
-        } 
-        aktivirajTarco(treOsvetljena);
-        
+        }else{
+          aktivirajTarco(treOsvetljena);
+        }
       }
       
       //izris na ekran
@@ -884,6 +900,9 @@ void programFSM4() { //prog 4 final state mašina
 
   }
 }
+
+//izpise long z zadnjo številko kot decimalko ("xx.x")
+//ostala mesta zafila s presledki
 void izpisiCas(long cas){
     char casArrOut[7];
     int  casArrOutIndex = 0;
@@ -1069,9 +1088,17 @@ void drawScreenNast() {
   lcd.setCursor(0, 1);
   //if(((s_ekranNastavitve*)vsiEkrani[state])->focus == OFF){
   uint8_t treIzbran = ((s_ekranNastavitve*)vsiEkrani[state])->trenutnoIzbran;
-  char *opis = ((s_ekranNastavitve*)vsiEkrani[state])->parameter[treIzbran].opis;
-  uint32_t vrednost = ((s_ekranNastavitve*)vsiEkrani[state])->parameter[treIzbran].vrednost;
+  uint8_t indexParametra = ((s_ekranNastavitve*)vsiEkrani[state])->indexi[treIzbran];
+  char *opis = parametri[indexParametra].opis;
+  uint32_t vrednost = parametri[indexParametra].vrednost;//((s_ekranNastavitve*)vsiEkrani[state])->parameter[treIzbran].vrednost;
   int b = 0; //<-- stevec ki se premika po poljih
+  sPrint("Vrednost: ", vrednost);
+  /*
+  Serial.println(d_retState);
+  Serial.println(d_tretIzbran);
+  Serial.println(d_indexParametra);
+  Serial.println(opis);
+  */
 
   //postavi puscice ce je elementov vec kot 2
   if(((s_ekranNastavitve*)vsiEkrani[state])->stParametrov > 2){
@@ -1113,9 +1140,16 @@ void drawScreenNast() {
 
 
 void drawScreenEdit() {
-  //naslovne vrstico pustimo pri miru
-  //spreminjamo samo ta drugo
   char outStr[16];
+  
+  //naslovne vrstico pustimo pri miru
+  //ampak temu ocitno ne bo tako ker zaradi ene cudne napake ki je v zgornjo vrstico zapisala
+  //en smorn jo ne morm pustiti pri miru FUACK
+  //TODO odkrij to mistririjozno napako !
+  lcd.setCursor(0, 0);
+  lcd.print(pretvoriBesedilo(&outStr[0], ((s_ekranNastavitve*)vsiEkrani[d_retState])->naslov, NASLOV));
+  
+  //spreminjamo samo ta drugo
   char vrednostStr[4]; // charr arr v katerga zapisemo vrednost
   int b = 0;               // stevec ki se premika po poljih naprej
 
@@ -1246,28 +1280,46 @@ uint8_t izvediUkaz(uint8_t ukaz) {
       return 1;
 
     case NAST_EDIT:
+      //ko se poklice okno nastavitve
+      
+      // zapovne si state da ve kere podatke ureja
+      d_retState = state;
+
+      
+      
       //prebere vresnost iz spomina
       defVrednost = d_parameter.vrednost;
       //sPrint("defV:", defVrednost);
-      d_parameter.vrednost = spomin[d_parameter.index];
-      sPrint("izSpomina:", spomin[d_parameter.index]);
-      if ( d_parameter.max < d_parameter.vrednost || d_parameter.vrednost > d_parameter.min) {
+      d_parameter.vrednost = spomin[d_indexParametra];
+      Serial.println(d_indexParametra);
+      sPrint("izSpomina:", spomin[d_indexParametra]);
+      
+      if ( d_parameter.max < d_parameter.vrednost || d_parameter.vrednost < d_parameter.min) {
+        Serial.println("napacna");
         d_parameter.vrednost = defVrednost;
       }
-
-      // zapovne si state da ve kere podatke ureja
-      d_retState = state;
 
       state = NAST_EDIT;
       Serial.println("We are in");
       return 1;
 
     case NAST_EDIT_FINISH:
-      //zapise vrednost nazaj v spomin
-      spomin[d_parameter.index] = d_parameter.vrednost;
-      //EEPROM.write(d_parameter.index, d_parameter.vrednost); TODO: urihtej ta spomi!
-      if(d_parameter.index == MEM_ST_TARC)stTarc = d_parameter.vrednost;
-      sPrint("koncna:", spomin[d_parameter.index]);
+      
+      if(spomin[d_indexParametra] != d_parameter.vrednost){
+        //zapise vrednost nazaj v spomin
+        spomin[d_indexParametra] = d_parameter.vrednost;
+        
+        //EEPROM.write(d_parameter.index, d_parameter.vrednost); TODO: urihtej ta spomi!
+        
+        dueFlashStorage.write(d_indexParametra, d_parameter.vrednost / d_parameter.korak);
+        sPrint("zapis v spomin:", dueFlashStorage.read(d_indexParametra) * d_parameter.korak);
+        
+      }else{
+        Serial.println("Ni bilo spremembe!");
+      }
+      
+      if(d_indexParametra == MEM_ST_TARC)stTarc = d_parameter.vrednost;
+      sPrint("koncna:", spomin[d_indexParametra]);
       state = d_retState;
       return 1;
       
@@ -1294,11 +1346,51 @@ void sPrint(char* c, int a) {
   Serial.println(a);
 }
 
-void getSpomin(int a) {
-
+void getSpomin() {
+ 
+  //deklaracija parametrov	opis,	        min,	max,	def,	korak
+  parametri[MEM_ST_TARC]=	{"st. tarc:",	1,	10,	10,	1	};
+  parametri[MEM_ZAMIK]=		{"zamik:",	100,	1000,	400,	100	};
+  
+  parametri[MEM_PROG1_CAS]=	{"cas:",	10,	200,	60,	10	};
+  //parametri[MEM_PROG1_TEZ]=	{"tezavnost:",	1,	5,	3,	1	};
+  
+  parametri[MEM_PROG2_TEZ]=	{"tezavnost:",	1,	5,	3,	1	};
+  parametri[MEM_PROG2_CAS]=	{"cas:",	10,	200,	60,	10	};
+  
+  parametri[MEM_PROG3_TEZ]=	{"tezavnost:",	1,	5,	3,	1	};
+  parametri[MEM_PROG3_CAS]=	{"cas:",	10,	200,	60,	10	};
+  
+  parametri[MEM_PROG4_TEZ]=	{"tezavnost:",	1,	5,	3,	1	};
+  parametri[MEM_PROG4_CAS]=	{"cas:",	1,	30,	10,	1	};
+  
+  parametri[MEM_PROG5_TEZ]=	{"tezavnost:",	1,	5,	3,	1	};
+  parametri[MEM_PROG5_CAS]=	{"cas:",	10,	200,	60,	10	};
+  
   //nafila ceu spomin iz EEPROM-a
   for (i = 0; i < ST_SPOMINA; i++) {
-    spomin[i] = -1;//EEPROM.read(i);
+    spomin[i] = dueFlashStorage.read(i) * parametri[i].korak;
+    
+     Serial.print(i);
+     Serial.print(": ");
+     
+    //vrednost v spominu je izven meja
+    if(spomin[i] > parametri[i].max || spomin[i]  < parametri[i].min){
+      Serial.print("os:");
+      Serial.print(spomin[i]);
+      
+      //na zacetku ko se ni nc spremenjen je v .vrednosti notr osnovna def vrednost
+      spomin[i] = parametri[i].vrednost;
+      
+      Serial.print("  ");
+      Serial.print("nova:");
+    }
+   
+    parametri[i].vrednost = spomin[i];
+    
+    Serial.println(spomin[i]);
+    
+    
   }
 }
 

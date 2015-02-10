@@ -16,6 +16,7 @@ void resetScore();
 void deaktivirajVse();
 void deaktivirajTarco(int tarca);
 void aktivirajVse();
+void aktivirajVseIzbrane();
 void aktivirajTarco(int tarca);
 void setNoReadTime(uint16_t a);
 void setStTarc(uint8_t st);

@@ -50,6 +50,7 @@ void deaktivirajVse(){
 	j=10;
 	while(j--)deaktivirajTarco(j);
 }
+
 void deaktivirajTarco(int tarca){
 	tarceStanje[tarca] = TARCA_OFF;
 	digitalWrite(senzorji[tarca].pinLuc, LOW);
@@ -57,6 +58,11 @@ void deaktivirajTarco(int tarca){
 
 void aktivirajVse(){
 	j=10;
+	while(j--)aktivirajTarco(j);
+}
+
+void aktivirajVseIzbrane(){
+	j=stTarc;
 	while(j--)aktivirajTarco(j);
 }
 
